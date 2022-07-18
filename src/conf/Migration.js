@@ -3,4 +3,4 @@ const Database = require('./Database');
 
 const database = new Database();
 
-migration.init(database.connection, __dirname, + 'Migrations');
+migration.init(database.connection, __dirname + '/Migrations');
