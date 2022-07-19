@@ -1,6 +1,11 @@
 const { nanoid } = require('nanoid');
 const bcrypt = require('bcrypt');
 
+const InvariantError = require('../../exceptions/InvariantError');
+const AuthenticationError = require('../../exceptions/AuthenticationError');
+const AuthorizationError = require('../../exceptions/AuthorizationError');
+const ClientError = require('../../exceptions/ClientError');
+const NotFoundError = require('../../exceptions/NotFoundError');
 
 class AuthenticationService {
     #database;
@@ -8,6 +13,8 @@ class AuthenticationService {
     constructor(database) {
         this.#database = database;
     }
+
+
     async #verifyUserEmail(email) {
         const query = `SELECT email FROM users WHERE email = '${email}'`;
 
@@ -18,7 +25,9 @@ class AuthenticationService {
         }
     }
 
+
     async register(email, name, password) {
+        await this.#verifyUserEmail(email);
         const id = `user-${nanoid(16)}`;
         const hashedPasword = await bcrypt.hash(password, 10);
 
@@ -35,6 +44,7 @@ class AuthenticationService {
 
         return id;
     }
+
 
     async login(email, password) {
         const query = `SELECT id, email, password, role FROM users WHERE email = '${email}'`;
@@ -56,6 +66,7 @@ class AuthenticationService {
         return { id, role };
     }
 
+
     async getUserById(userId) {
         const query = `SELECT name, email FROM users WHERE id = '${userId}'`;
 
@@ -63,6 +74,8 @@ class AuthenticationService {
 
         if (!result || result.length < 1 || result.affectedRows < 1) {
             throw new NotFoundErrorError('User tidak ditemukan');
+            throw new NotFoundError('User tidak ditemukan');
+
         }
 
         return result[0];

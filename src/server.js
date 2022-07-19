@@ -2,15 +2,23 @@ require('dotenv').config();
 const Hapi = require('@hapi/hapi');
 const Jwt = require('@hapi/jwt');
 
-//
-const authentication = require('./api/Authentication');
+// authentication
+const authentication = require('./api/authentication');
 const Database = require('./conf/Database');
+const ClientError = require('./exceptions/ClientError');
 const AuthenticationService = require('./services/mysql/AuthenticationService');
 const AuthenticationValidator = require('./validator/authentication');
+const InvariantError = require('./exceptions/InvariantError');
+
+//products
+const products = require('./api/products');
+const ProductsService = require('./services/mysql/ProductService');
+const ProductsValidator = require('./validator/products');
 
 const init = async () => {
     const database = new Database();
     const authenticationService = new AuthenticationService(database);
+    const productsService = new ProductsService(database);
 
     const server = Hapi.server({
         host: process.env.HOST,
@@ -26,11 +34,10 @@ const init = async () => {
         method: 'GET',
         path: '/',
         handler: () => ({
-            name: 'Neng Fia Anggita Zalsabila',
+            name: 'Rski Mulud Muchamad',
         }),
     });
 
-    //REGISTER EXTERNAL PLUGIN
     // register external plugin
   await server.register([
     {
@@ -54,13 +61,21 @@ server.auth.strategy('eshop_jwt', 'jwt',{
     }),
   });
 
-    //defines internal plugings
+
+    // defines internal plugins
     await server.register([
         {
             plugin: authentication,
             options: {
                 service: authenticationService,
                 validator: AuthenticationValidator,
+            },
+        },
+        {
+            plugin: products,
+            options: {
+                service: productsService,
+                validator: ProductsValidator,
             },
         },
     ]);
@@ -82,10 +97,10 @@ server.ext('onPreResponse', (request, h) => {
 
     return h.continue;
   });
+  
 
     await server.start();
     console.log(`Server running at ${server.info.uri}`);
-
 
 };
 

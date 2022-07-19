@@ -1,3 +1,4 @@
+const InvariantError = require('../../exceptions/InvariantError');
 const { RegisterPayloadSchema, LoginPayloadSchema } = require('./schema');
 
 const AuthenticationValidator = {
@@ -10,7 +11,7 @@ const AuthenticationValidator = {
     validateLoginPayload: (payload) => {
         const validationResult = LoginPayloadSchema.validate(payload);
         if (validationResult.error) {
-            throw new InvariantError(validationResult.error.message);
+            throw new InvariantErrorntError(validationResult.error.message);
         }
     },
 };
