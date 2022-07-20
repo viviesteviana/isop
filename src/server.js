@@ -21,7 +21,7 @@ const path = require('path');
 // carts
 const carts = require('./api/Carts')
 const CartsService = require('./services/mysql/CartsService');
-const CartsValidator = require('./validator/carts');
+const CartsValidator = require('./validator/Carts')
 
 const init = async () => {
     const database = new Database();
