@@ -1,6 +1,7 @@
 require('dotenv').config();
 const Hapi = require('@hapi/hapi');
 const Jwt = require('@hapi/jwt');
+const Inert = require('@hapi/inert');
 
 // authentication
 const authentication = require('./api/authentication');
@@ -8,17 +9,26 @@ const Database = require('./conf/Database');
 const ClientError = require('./exceptions/ClientError');
 const AuthenticationService = require('./services/mysql/AuthenticationService');
 const AuthenticationValidator = require('./validator/authentication');
-const InvariantError = require('./exceptions/InvariantError');
 
 //products
 const products = require('./api/products');
 const ProductsService = require('./services/mysql/ProductService');
 const ProductsValidator = require('./validator/products');
 
+const StorageService = require('./services/storage/StorageService');
+const path = require('path');
+
+// carts
+const carts = require('./api/carts');
+const CartsService = require('./services/mysql/CartsService');
+const CartsValidator = require('./validator/carts');
+
 const init = async () => {
     const database = new Database();
     const authenticationService = new AuthenticationService(database);
     const productsService = new ProductsService(database);
+    const cartsService = new CartsService(database);
+    const storageService = new StorageService(path.resolve(__dirname + '/api/products/images'))
 
     const server = Hapi.server({
         host: process.env.HOST,
@@ -43,6 +53,9 @@ const init = async () => {
     {
       plugin: Jwt,
     },
+    {
+      plugin: Inert,
+    }
   ]);
 
 // defines authentication strategy
@@ -74,10 +87,19 @@ server.auth.strategy('eshop_jwt', 'jwt',{
         {
             plugin: products,
             options: {
-                service: productsService,
+                productsService,
+                storageService,
                 validator: ProductsValidator,
             },
         },
+        {
+          plugin: carts,
+          options: {
+            service: cartsService,
+            validator: CartsValidator,
+          },
+        },
+
     ]);
 
 //extension
